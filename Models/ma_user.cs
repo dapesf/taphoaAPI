@@ -6,6 +6,8 @@ public class ma_user : IdentityUser
     [Key]
     [StringLength(20)]
     public string cd_phone_number { get; set; }
+    [StringLength(30)]
+    public string name { get; set; }
     [StringLength(20)]
     public string cd_store { get; set; }
     [StringLength(100)]

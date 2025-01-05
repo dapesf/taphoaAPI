@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using MailUtils;
 using InterFace;
+using System.Diagnostics.CodeAnalysis;
 
 namespace App.Controllers;
 
@@ -21,35 +22,113 @@ public class AuthenticationController : ControllerBase
         signInManager = _signInManager;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetSearchUser(string phone)
+    {
+        var result = context.ma_user.Where(x => x.cd_phone_number == phone).FirstOrDefault();
+
+        return Ok(new ResponseResult("I200", "Tìm kiếm thành công.", result));
+    }
+
     [HttpPost]
-    public async Task<IActionResult> Register([FromBody] RegisUser register)
+    public async Task<IActionResult> PostUser([FromBody] User user)
+    {
+        var result = context.ma_user.Where(x=>x.cd_phone_number == user.cd_phone_number).FirstOrDefault();
+        if(result == null)
+            return Ok(new ResponseResult("E400", "Tài khoản không tồn tại."));
+
+        result.name = user.name;
+        result.cd_store = user.cd_store;
+        result.Email = user.Email;
+
+        try
+        {
+            context.Update(result);
+            context.SaveChanges();
+        }
+        catch(Exception ex)
+        {
+            throw ex;
+        }
+
+        return Ok(new ResponseResult("I200", "Chỉnh sửa hoàn tất đăng kí", new { result = "" }));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Register([FromBody] User register)
     {
         if (string.IsNullOrEmpty(register.cd_phone_number) || string.IsNullOrEmpty(register.password))
             return NotFound(new ResponseResult("E400", "Thông tin đăng kí chưa đủ."));
 
+        var isReadyExistsUser = context.ma_user.Where(x => x.cd_phone_number == register.cd_phone_number).FirstOrDefault();
+        if (isReadyExistsUser != null)
+            return NotFound(new ResponseResult("E400", "Tài khoản đã tồn tại, vui lòng đăng kí số điện thoại khác."));
+
         var user = new ma_user
         {
             cd_phone_number = register.cd_phone_number,
-            UserName = register.name,
+            UserName = register.cd_phone_number,
             cd_store = register.cd_store,
             cd_password = register.cd_password,
-            flg_announce_exp = register.flg_announce_exp,
-            flg_announce_fast = register.flg_announce_fast,
-            flg_announce_slow = register.flg_announce_slow,
-            flg_announce_soldout = register.flg_announce_soldout,
-            lst_announce = register.lst_announce,
-            flg_delete = register.flg_delete,
+            Email = register.Email,
+            flg_announce_exp = 0,
+            flg_announce_fast = 0,
+            flg_announce_slow = 0,
+            flg_announce_soldout = 0,
+            lst_announce = "",
+            flg_delete = 0,
         };
 
         var result = await userManager.CreateAsync(user, register.password);
 
-        if (result.Succeeded)
-            return Ok(new ResponseResult("I200", "Đăng kí thành công.", new { result = result }));
-
-        if (result.Errors.Count() > 0)
+        if (!result.Succeeded)
             return NotFound(new ResponseResult("E400", "Đăng kí thất bại.", new { result = result.Errors }));
 
-        return NotFound(new ResponseResult("E400", "Đăng kí thất bại."));
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        var email = user.Email ?? "";
+
+        var resetLink = Url.Action("ConformMail", "Authentication", new { phone = user.cd_phone_number, email = email, token = token }, Request.Scheme);
+
+        bool res = await MailProider.SendGmail(
+           email
+            , email
+            , "Confirm Account"
+            , "Nhấn vào <a href='" + resetLink + "' >đây</a> để hoàn tất đăng kí tài khoản."
+            , email
+            , ""
+        );
+
+        if (!res)
+            return NotFound(new ResponseResult("E400", "Đăng kí thất bại."));
+
+        await userManager.SetAuthenticationTokenAsync(user, "Gmail", "ConformMail", token);
+
+        return Ok(new ResponseResult("I200", "Đăng kí thành công. Xác thực mail để hoàn tất đăng kí", new { result = result }));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ConformMail(string phone, string email, string token)
+    {
+        var user = context.ma_user.Where(x => x.Email == email && x.cd_phone_number == phone).FirstOrDefault();
+        if (user == null)
+        {
+            return NotFound(new ResponseResult("E400", "Người dùng không tồn tại!"));
+        }
+
+        var userToken = await userManager.GetAuthenticationTokenAsync(user, "Gmail", "ConformMail");
+
+        if (userToken == null || userToken != token)
+            return NotFound(new ResponseResult("E400", "Xác thực Token không thành công!"));
+
+
+        var res = await userManager.ConfirmEmailAsync(user, token);
+
+        if (!res.Succeeded)
+            return NotFound(new ResponseResult("E400", "Đăng kí thất bại.", new { result = res.Errors }));
+
+        await userManager.RemoveAuthenticationTokenAsync(user, "Gmail", "ConformMail");
+
+        return Ok(new ResponseResult("E400", "Đăng kí tài khoản hoàn tất."));
 
     }
 
@@ -75,6 +154,14 @@ public class AuthenticationController : ControllerBase
         if (signInManager.IsSignedIn(User))
             return NotFound(new ResponseResult("E400", "Bận đã đăng nhập rồi.", ""));
 
+        var user = context.ma_user.Where(x => x.cd_phone_number == info.cd_phone_number).FirstOrDefault();
+        if (user == null)
+            return NotFound(new ResponseResult("E400", "Tài khoản không tồn tại.", ""));
+
+        var isConfirmMail = await userManager.IsEmailConfirmedAsync(user);
+        if (!isConfirmMail)
+            return NotFound(new ResponseResult("E400", "Tài khoản chưa xác thực mail.", ""));
+
         var result = await signInManager.PasswordSignInAsync(
                     info.cd_phone_number,
                     info.password,
@@ -88,7 +175,7 @@ public class AuthenticationController : ControllerBase
         string token = string.Empty;
         token = JwtTokenCreateModule.GenerateToken(info.cd_phone_number);
 
-        return Ok(new ResponseResult("I200", "Đăng nhập thành công.", new { Token = token, userName = User.Identity.Name }));
+        return Ok(new ResponseResult("I200", "Đăng nhập thành công.", new { Token = token, phone = user.cd_phone_number }));
     }
 
     [HttpPost]
@@ -150,13 +237,13 @@ public class AuthenticationController : ControllerBase
         if (user == null)
             return NotFound(new ResponseResult("E400", "Số điện thoại này không tồn tại."));
 
-        if(!(await userManager.IsEmailConfirmedAsync(user)))
-            return NotFound(new ResponseResult("E400", "Người dùng chưa có mail."));
+        if (!(await userManager.IsEmailConfirmedAsync(user)))
+            return NotFound(new ResponseResult("E400", "Người dùng chưa xác thực mail."));
 
-        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
         var email = user.Email ?? "";
 
-        var resetLink = Url.Action("ResetPassword", "Authentication", new { email = email, password = password, token = token }, Request.Scheme);
+        var resetLink = Url.Action("ResetPassword", "Authentication", new { phone = phone, email = email, password = password, token = token }, Request.Scheme);
 
         bool res = await MailProider.SendGmail(
            email
@@ -176,9 +263,9 @@ public class AuthenticationController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> ResetPassword(string email, string password, string token)
+    public async Task<IActionResult> ResetPassword(string phone, string email, string password, string token)
     {
-        var user = context.ma_user.Where(x => x.Email == email).FirstOrDefault();
+        var user = context.ma_user.Where(x => x.Email == email && x.cd_password == phone).FirstOrDefault();
         if (user == null || !(await userManager.IsEmailConfirmedAsync(user)))
         {
             return NotFound(new ResponseResult("E400", "Email người dùng không tồn tại!"));
@@ -217,17 +304,12 @@ public class ChangePhone
     public string password { get; set; }
 }
 
-public class RegisUser
+public class User
 {
-    public string cd_phone_number { get; set; }
-    public string cd_store { get; set; }
-    public string cd_password { get; set; }
-    public string name { get; set; }
-    public string password { get; set; }
-    public short flg_announce_exp { get; set; }
-    public short flg_announce_fast { get; set; }
-    public short flg_announce_slow { get; set; }
-    public short flg_announce_soldout { get; set; }
-    public string lst_announce { get; set; }
-    public short flg_delete { get; set; }
+    public string? cd_phone_number { get; set; }
+    public string? cd_store { get; set; }
+    public string? cd_password { get; set; }
+    public string? name { get; set; }
+    public string? Email { get; set; }
+    public string? password { get; set; }
 }
