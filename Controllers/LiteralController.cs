@@ -1,6 +1,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using InterFace;
 
 namespace App.Controllers;
 
@@ -19,12 +20,8 @@ public class LiteralController : ControllerBase
     [HttpGet]
     public IActionResult GetLiteral(string cd_type, string kbn1)
     {
-        ma_literal? ma_literal = context.ma_literal.Find([cd_type, kbn1]);
-        return NotFound(new
-        {
-            status = "Get literal sucessfull!",
-            data = ma_literal
-        });
+        ma_literal literal = context.ma_literal.Find([cd_type, kbn1]);
+        return Ok(new ResponseResult("I200", "Lấy data literal thành công.", literal));
     }
 
     [HttpGet]
