@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using MailUtils;
 using InterFace;
-using System.Diagnostics.CodeAnalysis;
 
 namespace App.Controllers;
 
@@ -33,8 +32,8 @@ public class AuthenticationController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> PostUser([FromBody] User user)
     {
-        var result = context.ma_user.Where(x=>x.cd_phone_number == user.cd_phone_number).FirstOrDefault();
-        if(result == null)
+        var result = context.ma_user.Where(x => x.cd_phone_number == user.cd_phone_number).FirstOrDefault();
+        if (result == null)
             return Ok(new ResponseResult("E400", "Tài khoản không tồn tại."));
 
         result.name = user.name;
@@ -46,7 +45,7 @@ public class AuthenticationController : ControllerBase
             context.Update(result);
             context.SaveChanges();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             throw ex;
         }
@@ -152,7 +151,10 @@ public class AuthenticationController : ControllerBase
     {
 
         if (signInManager.IsSignedIn(User))
-            return NotFound(new ResponseResult("E400", "Bận đã đăng nhập rồi.", ""));
+        {
+            await signInManager.SignOutAsync();
+            HttpContext.Response.Cookies.Delete(".AspNetCore.Identity.Application");
+        }
 
         var user = context.ma_user.Where(x => x.cd_phone_number == info.cd_phone_number).FirstOrDefault();
         if (user == null)
@@ -173,6 +175,7 @@ public class AuthenticationController : ControllerBase
             return NotFound(new ResponseResult("E400", "Tài khoản hoặc mật khẩu không đúng.", ""));
 
         string token = string.Empty;
+
         token = JwtTokenCreateModule.GenerateToken(info.cd_phone_number);
 
         return Ok(new ResponseResult("I200", "Đăng nhập thành công.", new { Token = token, phone = user.cd_phone_number }));

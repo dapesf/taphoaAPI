@@ -1,8 +1,10 @@
 using System;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OData.ModelBuilder;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,14 +45,39 @@ builder.Services.AddCors(options =>
             });
     });
 
-builder.Services.ConfigureApplicationCookie(options =>
-    {
-        options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.None;
-        options.Cookie.SameSite = SameSiteMode.Lax;
-        options.LoginPath = "/Authentication/Login";
-    });
+// builder.Services.ConfigureApplicationCookie(options =>
+//     {
+//         options.Cookie.HttpOnly = true;
+//         options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+//         options.Cookie.SameSite = SameSiteMode.Lax;
+//         options.LoginPath = "/Authentication/Login";
+//     });
 
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.Authority = "http://localhost:3000";  // Địa chỉ Auth Server của bạn
+    //options.Audience = "your-api-audience";  // Dấu hiệu xác thực API của bạn
+    options.RequireHttpsMetadata = false; // Thiết lập cho môi trường phát triển (nên bật trong sản phẩm)
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = "http://localhost:3000",
+        ValidAudience = "http://localhost:3000",
+        ClockSkew = System.TimeSpan.Zero,
+        IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(ConfigurationManager.AppSetting["SecretKey"]))
+    };
+});
+
+builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -60,7 +87,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.UseSwaggerUI(c =>
     {
-        //c.SwaggerEndpoint("/swagger/v1/swagger.json", "MyAPI");
         c.InjectStylesheet("/swagger-ui/SwaggerDark.css");
     });
 }

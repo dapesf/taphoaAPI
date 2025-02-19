@@ -7,7 +7,7 @@ namespace App.Controllers;
 
 [ApiController]
 [Route("api/[controller]/[action]")]
-[Authorize]
+//[Authorize]
 public class LiteralController : ControllerBase
 {
     private readonly TaphoaEntities context;
