@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace taphoa.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20241214080541_v1")]
-    partial class v1
+    [Migration("20250411152342_v4")]
+    partial class v4
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -47,7 +47,7 @@ namespace taphoa.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -72,7 +72,7 @@ namespace taphoa.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
+                    b.ToTable("RoleClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -97,7 +97,7 @@ namespace taphoa.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
+                    b.ToTable("UserClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
@@ -119,7 +119,7 @@ namespace taphoa.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
+                    b.ToTable("UserLogins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -134,7 +134,7 @@ namespace taphoa.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("UserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -153,7 +153,7 @@ namespace taphoa.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
+                    b.ToTable("UserTokens", (string)null);
                 });
 
             modelBuilder.Entity("ma_literal", b =>
@@ -163,26 +163,22 @@ namespace taphoa.Migrations
                         .HasColumnType("character varying(3)");
 
                     b.Property<string>("kbn1")
-                        .IsRequired()
                         .HasMaxLength(3)
                         .HasColumnType("character varying(3)");
 
                     b.Property<string>("kbn2")
-                        .IsRequired()
                         .HasMaxLength(3)
                         .HasColumnType("character varying(3)");
 
                     b.Property<string>("nm1")
-                        .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
                     b.Property<string>("nm2")
-                        .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
-                    b.HasKey("cd_type");
+                    b.HasKey("cd_type", "kbn1");
 
                     b.ToTable("ma_literal");
                 });
@@ -194,7 +190,6 @@ namespace taphoa.Migrations
                         .HasColumnType("character varying(20)");
 
                     b.Property<string>("cd_phone_number")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
@@ -202,12 +197,10 @@ namespace taphoa.Migrations
                         .HasColumnType("smallint");
 
                     b.Property<string>("nm_address")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("nm_store")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -269,7 +262,6 @@ namespace taphoa.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.Property<string>("cd_password")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -278,7 +270,6 @@ namespace taphoa.Migrations
                         .HasColumnType("character varying(20)");
 
                     b.Property<string>("cd_store")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
@@ -299,9 +290,12 @@ namespace taphoa.Migrations
                         .HasColumnType("smallint");
 
                     b.Property<string>("lst_announce")
-                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
+
+                    b.Property<string>("name")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
 
                     b.HasKey("Id");
 
@@ -312,7 +306,7 @@ namespace taphoa.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("tr_anounce", b =>
@@ -322,7 +316,6 @@ namespace taphoa.Migrations
                         .HasColumnType("character varying(20)");
 
                     b.Property<string>("cd_store")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
@@ -333,12 +326,10 @@ namespace taphoa.Migrations
                         .HasColumnType("smallint");
 
                     b.Property<string>("nm_content")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
                     b.Property<string>("nm_title")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
@@ -360,26 +351,24 @@ namespace taphoa.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<short>("cd_country")
-                        .HasColumnType("smallint");
+                    b.Property<string>("cd_country")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
 
                     b.Property<DateOnly>("dt_end")
                         .HasColumnType("date");
 
                     b.Property<DateOnly>("dt_start")
-                        .HasMaxLength(20)
                         .HasColumnType("date");
 
                     b.Property<double>("kin_price")
                         .HasColumnType("double precision");
 
                     b.Property<string>("nm_product")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("nm_product_en")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -390,7 +379,6 @@ namespace taphoa.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("type_unit")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 

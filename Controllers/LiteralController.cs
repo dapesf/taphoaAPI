@@ -10,9 +10,9 @@ namespace App.Controllers;
 //[Authorize]
 public class LiteralController : ControllerBase
 {
-    private readonly TaphoaEntities context;
+    private readonly AppDBContext context;
 
-    public LiteralController(TaphoaEntities _context)
+    public LiteralController(AppDBContext _context)
     {
         context = _context;
     }

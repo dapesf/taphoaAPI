@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace taphoa.Migrations
 {
-    [DbContext(typeof(TaphoaEntities))]
+    [DbContext(typeof(AppDBContext))]
     [Migration("20250105152606_v3")]
     partial class v3
     {

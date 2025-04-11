@@ -9,9 +9,9 @@ namespace App.Controllers;
 [Authorize]
 public class AnnounceController : ControllerBase
 {
-    private readonly TaphoaEntities context;
+    private readonly AppDBContext context;
 
-    public AnnounceController(TaphoaEntities _context)
+    public AnnounceController(AppDBContext _context)
     {
         context = _context;
     }

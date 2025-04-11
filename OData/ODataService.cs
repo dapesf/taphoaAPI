@@ -9,9 +9,9 @@ namespace ODataService;
 [Authorize]
 public class ODataServiceController : ODataController
 {
-    private readonly TaphoaEntities context;
+    private readonly AppDBContext context;
 
-    public ODataServiceController(TaphoaEntities _context)
+    public ODataServiceController(AppDBContext _context)
     {
         context = _context;
     }

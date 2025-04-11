@@ -1,4 +1,3 @@
-using System;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Versioning;
@@ -22,12 +21,12 @@ odataBuilder.EntityType<ma_literal>();
 
 builder.Services.AddControllers().AddOData(opt => opt.Select().Expand().Filter().OrderBy().Count().SetMaxTop(1000));
 
-builder.Services.AddDbContext<TaphoaEntities>(
+builder.Services.AddDbContext<AppDBContext>(
     options => options.UseNpgsql(builder.Configuration.GetConnectionString("taphoa"))
 );
 
 builder.Services.AddIdentity<ma_user, IdentityRole>()
-    .AddEntityFrameworkStores<TaphoaEntities>()
+    .AddEntityFrameworkStores<AppDBContext>()
     .AddDefaultTokenProviders();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -44,14 +43,6 @@ builder.Services.AddCors(options =>
                 .AllowAnyHeader();
             });
     });
-
-// builder.Services.ConfigureApplicationCookie(options =>
-//     {
-//         options.Cookie.HttpOnly = true;
-//         options.Cookie.SecurePolicy = CookieSecurePolicy.None;
-//         options.Cookie.SameSite = SameSiteMode.Lax;
-//         options.LoginPath = "/Authentication/Login";
-//     });
 
 builder.Services.AddAuthentication(opt =>
 {

@@ -9,9 +9,9 @@ namespace App.Controllers;
 [Authorize]
 public class StoreController : ControllerBase
 {
-    private readonly TaphoaEntities context;
+    private readonly AppDBContext context;
 
-    public StoreController(TaphoaEntities _context)
+    public StoreController(AppDBContext _context)
     {
         context = _context;
     }

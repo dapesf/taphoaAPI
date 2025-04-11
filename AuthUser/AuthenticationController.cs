@@ -10,11 +10,11 @@ namespace App.Controllers;
 
 public class AuthenticationController : ControllerBase
 {
-    private readonly TaphoaEntities context;
+    private readonly AppDBContext context;
     private readonly UserManager<ma_user> userManager;
     private readonly SignInManager<ma_user> signInManager;
 
-    public AuthenticationController(TaphoaEntities _context, UserManager<ma_user> _userManager, SignInManager<ma_user> _signInManager)
+    public AuthenticationController(AppDBContext _context, UserManager<ma_user> _userManager, SignInManager<ma_user> _signInManager)
     {
         context = _context;
         userManager = _userManager;
@@ -26,7 +26,7 @@ public class AuthenticationController : ControllerBase
     {
         var result = context.ma_user.Where(x => x.cd_phone_number == phone).FirstOrDefault();
 
-        return Ok(new ResponseResult("I200", "Tìm kiếm thành công.", result));
+        return Ok(new ResponseResult("I200", SystemMessages.Get("99_SearchSusscess"), result));
     }
 
     [HttpPost]
@@ -34,7 +34,7 @@ public class AuthenticationController : ControllerBase
     {
         var result = context.ma_user.Where(x => x.cd_phone_number == user.cd_phone_number).FirstOrDefault();
         if (result == null)
-            return Ok(new ResponseResult("E400", "Tài khoản không tồn tại."));
+            return Ok(new ResponseResult("E400", SystemMessages.Get("A_UserNotFound")));
 
         result.name = user.name;
         result.cd_store = user.cd_store;
@@ -50,7 +50,7 @@ public class AuthenticationController : ControllerBase
             throw ex;
         }
 
-        return Ok(new ResponseResult("I200", "Chỉnh sửa hoàn tất đăng kí", new { result = "" }));
+        return Ok(new ResponseResult("I200", SystemMessages.Get("A_RegisDone"), new { result = "" }));
     }
 
     [HttpPost]
@@ -137,13 +137,13 @@ public class AuthenticationController : ControllerBase
         var user = await userManager.GetUserAsync(User);
         if (user == null)
         {
-            return Ok(new ResponseResult("I200", "Người dùng chưa đăng nhập."));
+            return Ok(new ResponseResult("I200", SystemMessages.Get("A_UserLoginYet")));
         }
         await signInManager.SignOutAsync();
 
         HttpContext.Response.Cookies.Delete(".AspNetCore.Identity.Application");
 
-        return Ok(new ResponseResult("I200", "Đăng xuất thành công."));
+        return Ok(new ResponseResult("I200", SystemMessages.Get("A_UserLoginYet")));
     }
 
     [HttpPost]
@@ -158,11 +158,11 @@ public class AuthenticationController : ControllerBase
 
         var user = context.ma_user.Where(x => x.cd_phone_number == info.cd_phone_number).FirstOrDefault();
         if (user == null)
-            return NotFound(new ResponseResult("E400", "Tài khoản không tồn tại.", ""));
+            return NotFound(new ResponseResult("E400", SystemMessages.Get("A_UserNotFound"), ""));
 
         var isConfirmMail = await userManager.IsEmailConfirmedAsync(user);
         if (!isConfirmMail)
-            return NotFound(new ResponseResult("E400", "Tài khoản chưa xác thực mail.", ""));
+            return NotFound(new ResponseResult("E400", SystemMessages.Get("A_ConfirmEmailYet"), ""));
 
         var result = await signInManager.PasswordSignInAsync(
                     info.cd_phone_number,
@@ -172,13 +172,13 @@ public class AuthenticationController : ControllerBase
                 );
 
         if (!result.Succeeded)
-            return NotFound(new ResponseResult("E400", "Tài khoản hoặc mật khẩu không đúng.", ""));
+            return NotFound(new ResponseResult("E400", SystemMessages.Get("A_NotCorrectUser"), ""));
 
         string token = string.Empty;
 
         token = JwtTokenCreateModule.GenerateToken(info.cd_phone_number);
 
-        return Ok(new ResponseResult("I200", "Đăng nhập thành công.", new { Token = token, phone = user.cd_phone_number }));
+        return Ok(new ResponseResult("I200", SystemMessages.Get("A_LoginSuccess"), new { Token = token, phone = user.cd_phone_number }));
     }
 
     [HttpPost]
@@ -188,18 +188,18 @@ public class AuthenticationController : ControllerBase
 
         if (user == null)
         {
-            return NotFound(new ResponseResult("E400", "Tài khoản hoặc mật khẩu không đúng."));
+            return NotFound(new ResponseResult("E400", SystemMessages.Get("A_NotCorrectUser")));
         }
 
         var result = await userManager.ChangePasswordAsync(user, pw.oldPw, pw.newPw);
 
         if (!result.Succeeded)
-            return NotFound(new ResponseResult("E400", "Thay đổi mật khẩu thất bại.", result.Errors));
+            return NotFound(new ResponseResult("E400", SystemMessages.Get("A_FailChangePassWord"), result.Errors));
 
         await signInManager.SignOutAsync();
         HttpContext.Response.Cookies.Delete(".AspNetCore.Identity.Application");
 
-        return Ok(new ResponseResult("I400", "Thay đổi mật khẩu thành công."));
+        return Ok(new ResponseResult("I400", SystemMessages.Get("A_SusscessChangePassWord")));
     }
 
     [HttpPost]
@@ -210,7 +210,7 @@ public class AuthenticationController : ControllerBase
 
         if (user == null)
         {
-            return NotFound(new ResponseResult("E400", "Tài khoản hoặc mật khẩu không đúng."));
+            return NotFound(new ResponseResult("E400", SystemMessages.Get("A_NotCorrectUser")));
         }
 
         var delUser = await userManager.DeleteAsync(user);

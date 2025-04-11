@@ -11,9 +11,9 @@ namespace App.Controllers;
 [Authorize]
 public class ProductController : ControllerBase
 {
-    private readonly TaphoaEntities context;
+    private readonly AppDBContext context;
 
-    public ProductController(TaphoaEntities _context)
+    public ProductController(AppDBContext _context)
     {
         context = _context;
     }
@@ -34,26 +34,37 @@ public class ProductController : ControllerBase
     public IActionResult GetAllProduct()
     {
         var products = from product in context.tr_product
-        join unit in (context.ma_literal.Where(x => x.cd_type == "001"))
-        on product.type_unit equals unit.kbn1
-        into dataGroup
-        from data in dataGroup.DefaultIfEmpty()
-        orderby product.cd_product descending
-        select new ProductResponse
-        {
-            cd_product = product.cd_product
-            , cd_store = product.cd_store
-            , nm_product = product.nm_product
-            , nm_product_en = product.nm_product_en
-            , dt_start = product.dt_start
-            , dt_end = product.dt_end
-            , kin_price = product.kin_price
-            , type_unit = product.type_unit
-            , qnt_in = product.qnt_in
-            , qnt_remain = product.qnt_remain
-            , cd_country = product.cd_country
-            , unit = data.nm1
-        };
+                       join unit in (context.ma_literal.Where(x => x.cd_type == "001"))
+                       on product.type_unit equals unit.kbn1
+                       into dataGroup
+                       from data in dataGroup.DefaultIfEmpty()
+                       orderby product.cd_product descending
+                       select new ProductResponse
+                       {
+                           cd_product = product.cd_product
+                           ,
+                           cd_store = product.cd_store
+                           ,
+                           nm_product = product.nm_product
+                           ,
+                           nm_product_en = product.nm_product_en
+                           ,
+                           dt_start = product.dt_start
+                           ,
+                           dt_end = product.dt_end
+                           ,
+                           kin_price = product.kin_price
+                           ,
+                           type_unit = product.type_unit
+                           ,
+                           qnt_in = product.qnt_in
+                           ,
+                           qnt_remain = product.qnt_remain
+                           ,
+                           cd_country = product.cd_country
+                           ,
+                           unit = data.nm1
+                       };
 
         return Ok(new ResponseResult
         (

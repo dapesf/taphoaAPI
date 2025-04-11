@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter</value>
+  </resheader>
+
+  <data name="A_UserNotFound" xml:space="preserve">
+    <value>Người dùng không tồn tại</value>
+  </data>
+  <data name="A_LoginSuccess" xml:space="preserve">
+    <value>Đăng nhập thành công</value>
+  </data>
+  <data name="A_InvalidEmail" xml:space="preserve">
+    <value>Email không hợp lệ</value>
+  </data>
+  <data name="99_SearchSusscess" xml:space="preserve">
+    <value>Tìm kiếm thành công</value>
+  </data>
+  <data name="A_RegisDone" xml:space="preserve">
+    <value>Chỉnh sửa hoàn tất đăng kí</value>
+  </data>
+  <data name="A_UserLoginYet" xml:space="preserve">
+    <value>Người dùng chưa đăng nhập.</value>
+  </data>
+  <data name="A_ConfirmEmailYet" xml:space="preserve">
+    <value>Tài khoản chưa xác thực mail.</value>
+  </data>
+  <data name="A_NotCorrectUser" xml:space="preserve">
+    <value>Tài khoản hoặc mật khẩu không đúng.</value>
+  </data>
+  <data name="A_FailChangePassWord" xml:space="preserve">
+    <value>Thay đổi mật khẩu thất bại.</value>
+  </data>
+  <data name="A_SusscessChangePassWord" xml:space="preserve">
+    <value>Thay đổi mật khẩu thất bại.</value>
+  </data>
+</root>
